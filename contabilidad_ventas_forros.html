@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contabilidad de Ventas de Forros</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --accent: #2563eb;
+      --accent-2: #111827;
+      --ok: #065f46;
+      --warn: #92400e;
+      --danger: #b91c1c;
+      --overlay: rgba(15, 23, 42, 0.55);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px;
+    }
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3 { margin: 0 0 12px; }
+    p { margin: 8px 0; }
+    .muted { color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      font-size: 15px;
+      background: #fff;
+    }
+    textarea { min-height: 86px; resize: vertical; }
+    .btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--accent);
+      color: white;
+    }
+    button.secondary { background: var(--accent-2); }
+    button.warn { background: var(--danger); }
+    button.ghost {
+      background: #e5e7eb;
+      color: #111827;
+    }
+    .mini-btn {
+      border: 0;
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      color: white;
+      margin-left: 6px;
+    }
+    .mini-btn.secondary { background: var(--accent-2); }
+    .mini-btn.warn { background: var(--danger); }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fafafa;
+    }
+    .stat .title {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .stat .value {
+      font-size: 24px;
+      font-weight: 800;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    .pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #eef2ff;
+      color: #3730a3;
+    }
+    .paid { background: #ecfdf5; color: var(--ok); }
+    .pending { background: #fff7ed; color: var(--warn); }
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .abonos-box {
+      margin-top: 6px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: #f8fafc;
+      border: 1px dashed var(--line);
+    }
+    .abonos-box ul {
+      margin: 6px 0 0;
+      padding-left: 18px;
+    }
+    .abonos-box li {
+      margin-bottom: 6px;
+    }
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: var(--overlay);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 999;
+    }
+    .modal.show { display: flex; }
+    .modal-card {
+      width: 100%;
+      max-width: 520px;
+      background: white;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      padding: 18px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.18);
+    }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 720px) {
+      table, thead, tbody, th, td, tr { display: block; }
+      thead { display: none; }
+      tr {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        margin-bottom: 12px;
+        padding: 8px;
+        background: #fff;
+      }
+      td {
+        border: 0;
+        padding: 8px;
+      }
+      td::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 4px;
+        font-weight: 700;
+      }
+      .two-col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Contabilidad de Ventas de Forros</h1>
+      <p class="muted">Pago inicial y abonos separados, con edición de abonos y reportes por mes.</p>
+    </div>
+
+    <div class="card">
+      <h2>Registrar venta</h2>
+      <div class="grid">
+        <div>
+          <label for="fecha">Fecha</label>
+          <input id="fecha" type="date" />
+        </div>
+        <div>
+          <label for="cliente">Cliente</label>
+          <input id="cliente" type="text" placeholder="Nombre del cliente" />
+        </div>
+        <div>
+          <label for="telefono">Teléfono</label>
+          <input id="telefono" type="text" placeholder="Opcional" />
+        </div>
+        <div>
+          <label for="tipoForro">Tipo de forro</label>
+          <select id="tipoForro">
+            <option value="Normal">Normal</option>
+            <option value="Impermeable">Impermeable</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div>
+          <label for="medida">Medida</label>
+          <input id="medida" type="text" placeholder="Ej: 60x80x10" />
+        </div>
+        <div>
+          <label for="cantidad">Cantidad</label>
+          <input id="cantidad" type="number" min="1" step="1" value="1" />
+        </div>
+        <div>
+          <label for="precioVenta">Precio total de la venta</label>
+          <input id="precioVenta" type="number" step="0.01" value="0" />
+        </div>
+        <div>
+          <label for="costoTotal">Costo total</label>
+          <input id="costoTotal" type="number" step="0.01" value="0" />
+        </div>
+        <div>
+          <label for="pagoInicial">Pago inicial</label>
+          <input id="pagoInicial" type="number" step="0.01" value="0" />
+        </div>
+        <div>
+          <label for="metodoPago">Método de pago</label>
+          <select id="metodoPago">
+            <option value="Efectivo">Efectivo</option>
+            <option value="Transferencia">Transferencia</option>
+            <option value="Mixto">Mixto</option>
+            <option value="Pendiente">Pendiente</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <label for="nota">Nota</label>
+        <textarea id="nota" placeholder="Color, diseño, entrega, dirección, detalles..."></textarea>
+      </div>
+      <div class="btns">
+        <button onclick="guardarVentaDesdeFormulario()">Guardar venta</button>
+        <button class="secondary" onclick="guardarManual()">Guardar todo</button>
+        <button class="secondary" onclick="restaurarCopia()">Restaurar última copia</button>
+        <button class="secondary" onclick="exportarJSON()">Exportar respaldo JSON</button>
+        <button class="secondary" onclick="exportarReporte()">Exportar reporte</button>
+        <button class="warn" onclick="borrarTodo()">Borrar todo</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Ventas por mes</h2>
+      <div class="grid">
+        <div>
+          <label for="filtroMes">Elegir mes</label>
+          <input id="filtroMes" type="month" onchange="renderResumenMensual()" />
+        </div>
+      </div>
+      <div class="stats" style="margin-top:12px;">
+        <div class="stat"><div class="title">Ventas del mes</div><div class="value" id="mVentas">0</div></div>
+        <div class="stat"><div class="title">Total vendido del mes</div><div class="value" id="mTotalVendido">$0.00</div></div>
+        <div class="stat"><div class="title">Total pagado del mes</div><div class="value" id="mCobrado">$0.00</div></div>
+        <div class="stat"><div class="title">Pendiente del mes</div><div class="value" id="mPendiente">$0.00</div></div>
+        <div class="stat"><div class="title">Ganancia del mes</div><div class="value" id="mGanancia">$0.00</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Resumen general</h2>
+      <div class="stats">
+        <div class="stat"><div class="title">Ventas registradas</div><div class="value" id="sVentas">0</div></div>
+        <div class="stat"><div class="title">Total vendido</div><div class="value" id="sTotalVendido">$0.00</div></div>
+        <div class="stat"><div class="title">Total pagado</div><div class="value" id="sCobrado">$0.00</div></div>
+        <div class="stat"><div class="title">Pendiente por cobrar</div><div class="value" id="sPendiente">$0.00</div></div>
+        <div class="stat"><div class="title">Costo total</div><div class="value" id="sCosto">$0.00</div></div>
+        <div class="stat"><div class="title">Ganancia real</div><div class="value" id="sGanancia">$0.00</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <h2>Historial de ventas</h2>
+        <input id="buscar" type="text" placeholder="Buscar por cliente, medida o tipo" oninput="renderTabla()" style="max-width: 320px;" />
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Forro</th>
+            <th>Cantidad</th>
+            <th>Total venta</th>
+            <th>Pago inicial</th>
+            <th>Total abonos</th>
+            <th>Total pagado</th>
+            <th>Pendiente</th>
+            <th>Costo</th>
+            <th>Ganancia</th>
+            <th>Estado</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tablaVentas"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="modal" id="modalAbono">
+    <div class="modal-card">
+      <h3>Registrar abono</h3>
+      <p class="muted" id="abonoInfo">Cliente</p>
+      <div class="two-col">
+        <div>
+          <label for="abonoFecha">Fecha del abono</label>
+          <input id="abonoFecha" type="date" />
+        </div>
+        <div>
+          <label for="abonoMonto">Monto abonado</label>
+          <input id="abonoMonto" type="number" step="0.01" value="0" />
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <label for="abonoNota">Nota del abono</label>
+        <input id="abonoNota" type="text" placeholder="Ej: transferencia, efectivo, segunda parte" />
+      </div>
+      <div class="btns">
+        <button onclick="confirmarAbono()">Guardar abono</button>
+        <button class="ghost" onclick="cerrarModalAbono()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modalEditarAbono">
+    <div class="modal-card">
+      <h3>Editar abono</h3>
+      <p class="muted" id="editarAbonoInfo">Abono</p>
+      <div class="two-col">
+        <div>
+          <label for="editarAbonoFecha">Fecha del abono</label>
+          <input id="editarAbonoFecha" type="date" />
+        </div>
+        <div>
+          <label for="editarAbonoMonto">Monto abonado</label>
+          <input id="editarAbonoMonto" type="number" step="0.01" value="0" />
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <label for="editarAbonoNota">Nota del abono</label>
+        <input id="editarAbonoNota" type="text" placeholder="Detalle del abono" />
+      </div>
+      <div class="btns">
+        <button onclick="guardarEdicionAbono()">Guardar cambios</button>
+        <button class="ghost" onclick="cerrarModalEditarAbono()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modalEditar">
+    <div class="modal-card">
+      <h3>Editar venta</h3>
+      <div class="grid">
+        <div>
+          <label for="eFecha">Fecha</label>
+          <input id="eFecha" type="date" />
+        </div>
+        <div>
+          <label for="eCliente">Cliente</label>
+          <input id="eCliente" type="text" />
+        </div>
+        <div>
+          <label for="eTelefono">Teléfono</label>
+          <input id="eTelefono" type="text" />
+        </div>
+        <div>
+          <label for="eTipoForro">Tipo de forro</label>
+          <select id="eTipoForro">
+            <option value="Normal">Normal</option>
+            <option value="Impermeable">Impermeable</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div>
+          <label for="eMedida">Medida</label>
+          <input id="eMedida" type="text" />
+        </div>
+        <div>
+          <label for="eCantidad">Cantidad</label>
+          <input id="eCantidad" type="number" min="1" step="1" />
+        </div>
+        <div>
+          <label for="ePrecioVenta">Precio total de la venta</label>
+          <input id="ePrecioVenta" type="number" step="0.01" />
+        </div>
+        <div>
+          <label for="eCostoTotal">Costo total</label>
+          <input id="eCostoTotal" type="number" step="0.01" />
+        </div>
+        <div>
+          <label for="ePagoInicial">Pago inicial</label>
+          <input id="ePagoInicial" type="number" step="0.01" />
+        </div>
+        <div>
+          <label for="eMetodoPago">Método de pago</label>
+          <select id="eMetodoPago">
+            <option value="Efectivo">Efectivo</option>
+            <option value="Transferencia">Transferencia</option>
+            <option value="Mixto">Mixto</option>
+            <option value="Pendiente">Pendiente</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <label for="eNota">Nota</label>
+        <textarea id="eNota"></textarea>
+      </div>
+      <div class="btns">
+        <button onclick="guardarEdicion()">Guardar cambios</button>
+        <button class="ghost" onclick="cerrarModalEditar()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'ventas_forros_contabilidad';
+    let ventas = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    let ventaAbonoActualId = null;
+    let ventaEditandoId = null;
+    let ventaAbonoEditandoId = null;
+    let indiceAbonoEditando = null;
+
+    function hoyISO() {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function fmt(n) {
+      return new Intl.NumberFormat('es-DO', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(Number(n || 0));
+    }
+
+    function recalcularVenta(venta) {
+      const pagoInicial = Number(venta.pagoInicial || 0);
+      const totalAbonos = (venta.abonos || []).reduce((a, x) => a + Number(x.monto || 0), 0);
+      venta.totalAbonos = totalAbonos;
+      venta.totalPagado = pagoInicial + totalAbonos;
+      if (venta.totalPagado > Number(venta.precioVenta || 0)) {
+        venta.totalPagado = Number(venta.precioVenta || 0);
+      }
+      venta.pendiente = Math.max(Number(venta.precioVenta || 0) - venta.totalPagado, 0);
+      venta.ganancia = Number(venta.precioVenta || 0) - Number(venta.costoTotal || 0);
+      if (venta.totalPagado <= 0) venta.estado = 'Sin pago';
+      else if (venta.pendiente <= 0) venta.estado = 'Pagado';
+      else venta.estado = 'Pago parcial';
+    }
+
+    function normalizarVentas() {
+      ventas = ventas.map(v => {
+        const copia = {
+          ...v,
+          pagoInicial: Number(v.pagoInicial ?? 0),
+          abonos: Array.isArray(v.abonos) ? v.abonos : []
+        };
+        recalcularVenta(copia);
+        return copia;
+      });
+    }
+
+    function guardar() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(ventas));
+    }
+
+    function guardarManual() {
+      localStorage.setItem(STORAGE_KEY + '_backup', JSON.stringify(ventas));
+      alert('Copia guardada correctamente.');
+    }
+
+    function restaurarCopia() {
+      const copia = localStorage.getItem(STORAGE_KEY + '_backup');
+      if (!copia) {
+        alert('No existe una copia guardada.');
+        return;
+      }
+      const confirmar = confirm('¿Quieres restaurar la última copia guardada? Esto reemplazará los datos actuales.');
+      if (!confirmar) return;
+      ventas = JSON.parse(copia);
+      normalizarVentas();
+      guardar();
+      renderTodo();
+      alert('Datos restaurados correctamente.');
+    }
+
+    function limpiarFormulario() {
+      document.getElementById('cliente').value = '';
+      document.getElementById('telefono').value = '';
+      document.getElementById('tipoForro').value = 'Normal';
+      document.getElementById('medida').value = '';
+      document.getElementById('cantidad').value = 1;
+      document.getElementById('precioVenta').value = 0;
+      document.getElementById('costoTotal').value = 0;
+      document.getElementById('pagoInicial').value = 0;
+      document.getElementById('metodoPago').value = 'Efectivo';
+      document.getElementById('nota').value = '';
+    }
+
+    function guardarVentaDesdeFormulario() {
+      const fecha = document.getElementById('fecha').value || hoyISO();
+      const cliente = document.getElementById('cliente').value.trim();
+      const telefono = document.getElementById('telefono').value.trim();
+      const tipoForro = document.getElementById('tipoForro').value;
+      const medida = document.getElementById('medida').value.trim();
+      const cantidad = Math.max(1, parseInt(document.getElementById('cantidad').value, 10) || 1);
+      const precioVenta = parseFloat(document.getElementById('precioVenta').value) || 0;
+      const costoTotal = parseFloat(document.getElementById('costoTotal').value) || 0;
+      const pagoInicial = parseFloat(document.getElementById('pagoInicial').value) || 0;
+      const metodoPago = document.getElementById('metodoPago').value;
+      const nota = document.getElementById('nota').value.trim();
+
+      if (!cliente) {
+        alert('Escribe el nombre del cliente.');
+        return;
+      }
+
+      const venta = {
+        id: Date.now(),
+        fecha,
+        cliente,
+        telefono,
+        tipoForro,
+        medida,
+        cantidad,
+        precioVenta,
+        costoTotal,
+        pagoInicial,
+        totalAbonos: 0,
+        totalPagado: 0,
+        pendiente: 0,
+        ganancia: 0,
+        metodoPago,
+        estado: 'Sin pago',
+        nota,
+        abonos: []
+      };
+
+      recalcularVenta(venta);
+      ventas.unshift(venta);
+      guardar();
+      limpiarFormulario();
+      renderTodo();
+      alert('Venta guardada correctamente.');
+    }
+
+    function eliminarVenta(id) {
+      const ok = confirm('¿Seguro que quieres borrar esta venta?');
+      if (!ok) return;
+      ventas = ventas.filter(v => v.id !== id);
+      guardar();
+      renderTodo();
+    }
+
+    function abrirModalAbono(id) {
+      const venta = ventas.find(v => v.id === id);
+      if (!venta) return;
+      ventaAbonoActualId = id;
+      document.getElementById('abonoInfo').textContent = `${venta.cliente} • Pendiente: $${fmt(venta.pendiente)}`;
+      document.getElementById('abonoFecha').value = hoyISO();
+      document.getElementById('abonoMonto').value = venta.pendiente > 0 ? venta.pendiente : 0;
+      document.getElementById('abonoNota').value = '';
+      document.getElementById('modalAbono').classList.add('show');
+    }
+
+    function cerrarModalAbono() {
+      ventaAbonoActualId = null;
+      document.getElementById('modalAbono').classList.remove('show');
+    }
+
+    function confirmarAbono() {
+      const venta = ventas.find(v => v.id === ventaAbonoActualId);
+      if (!venta) return;
+      const fecha = document.getElementById('abonoFecha').value || hoyISO();
+      const monto = parseFloat(document.getElementById('abonoMonto').value) || 0;
+      const nota = document.getElementById('abonoNota').value.trim();
+      if (monto <= 0) {
+        alert('Escribe un monto válido.');
+        return;
+      }
+      venta.abonos.push({ fecha, monto, nota: nota || 'Abono' });
+      recalcularVenta(venta);
+      guardar();
+      renderTodo();
+      cerrarModalAbono();
+      alert('Abono guardado correctamente.');
+    }
+
+    function abrirEditarAbono(ventaId, indiceAbono) {
+      const venta = ventas.find(v => v.id === ventaId);
+      if (!venta || !venta.abonos || !venta.abonos[indiceAbono]) return;
+      const abono = venta.abonos[indiceAbono];
+      ventaAbonoEditandoId = ventaId;
+      indiceAbonoEditando = indiceAbono;
+      document.getElementById('editarAbonoInfo').textContent = `${venta.cliente} • Abono #${indiceAbono + 1}`;
+      document.getElementById('editarAbonoFecha').value = abono.fecha || hoyISO();
+      document.getElementById('editarAbonoMonto').value = abono.monto || 0;
+      document.getElementById('editarAbonoNota').value = abono.nota || '';
+      document.getElementById('modalEditarAbono').classList.add('show');
+    }
+
+    function cerrarModalEditarAbono() {
+      ventaAbonoEditandoId = null;
+      indiceAbonoEditando = null;
+      document.getElementById('modalEditarAbono').classList.remove('show');
+    }
+
+    function guardarEdicionAbono() {
+      const venta = ventas.find(v => v.id === ventaAbonoEditandoId);
+      if (!venta || indiceAbonoEditando === null || !venta.abonos || !venta.abonos[indiceAbonoEditando]) return;
+      const fecha = document.getElementById('editarAbonoFecha').value || hoyISO();
+      const monto = parseFloat(document.getElementById('editarAbonoMonto').value) || 0;
+      const nota = document.getElementById('editarAbonoNota').value.trim();
+      if (monto <= 0) {
+        alert('Escribe un monto válido.');
+        return;
+      }
+      venta.abonos[indiceAbonoEditando] = { fecha, monto, nota };
+      recalcularVenta(venta);
+      guardar();
+      renderTodo();
+      cerrarModalEditarAbono();
+      alert('Abono editado correctamente.');
+    }
+
+    function borrarAbono(ventaId, indiceAbono) {
+      const venta = ventas.find(v => v.id === ventaId);
+      if (!venta || !venta.abonos || !venta.abonos[indiceAbono]) return;
+      const ok = confirm('¿Seguro que quieres borrar este abono?');
+      if (!ok) return;
+      venta.abonos.splice(indiceAbono, 1);
+      recalcularVenta(venta);
+      guardar();
+      renderTodo();
+    }
+
+    function abrirModalEditar(id) {
+      const venta = ventas.find(v => v.id === id);
+      if (!venta) return;
+      ventaEditandoId = id;
+      document.getElementById('eFecha').value = venta.fecha || hoyISO();
+      document.getElementById('eCliente').value = venta.cliente || '';
+      document.getElementById('eTelefono').value = venta.telefono || '';
+      document.getElementById('eTipoForro').value = venta.tipoForro || 'Normal';
+      document.getElementById('eMedida').value = venta.medida || '';
+      document.getElementById('eCantidad').value = venta.cantidad || 1;
+      document.getElementById('ePrecioVenta').value = venta.precioVenta || 0;
+      document.getElementById('eCostoTotal').value = venta.costoTotal || 0;
+      document.getElementById('ePagoInicial').value = venta.pagoInicial || 0;
+      document.getElementById('eMetodoPago').value = venta.metodoPago || 'Efectivo';
+      document.getElementById('eNota').value = venta.nota || '';
+      document.getElementById('modalEditar').classList.add('show');
+    }
+
+    function cerrarModalEditar() {
+      ventaEditandoId = null;
+      document.getElementById('modalEditar').classList.remove('show');
+    }
+
+    function guardarEdicion() {
+      const venta = ventas.find(v => v.id === ventaEditandoId);
+      if (!venta) return;
+      venta.fecha = document.getElementById('eFecha').value || hoyISO();
+      venta.cliente = document.getElementById('eCliente').value.trim();
+      venta.telefono = document.getElementById('eTelefono').value.trim();
+      venta.tipoForro = document.getElementById('eTipoForro').value;
+      venta.medida = document.getElementById('eMedida').value.trim();
+      venta.cantidad = Math.max(1, parseInt(document.getElementById('eCantidad').value, 10) || 1);
+      venta.precioVenta = parseFloat(document.getElementById('ePrecioVenta').value) || 0;
+      venta.costoTotal = parseFloat(document.getElementById('eCostoTotal').value) || 0;
+      venta.pagoInicial = parseFloat(document.getElementById('ePagoInicial').value) || 0;
+      venta.metodoPago = document.getElementById('eMetodoPago').value;
+      venta.nota = document.getElementById('eNota').value.trim();
+      recalcularVenta(venta);
+      guardar();
+      renderTodo();
+      cerrarModalEditar();
+      alert('Venta actualizada correctamente.');
+    }
+
+    function exportarJSON() {
+      const blob = new Blob([JSON.stringify(ventas, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ventas_forros_respaldo.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportarReporte() {
+      const mesSeleccionado = document.getElementById('filtroMes') ? document.getElementById('filtroMes').value || '' : '';
+      const datos = mesSeleccionado ? ventas.filter(v => String(v.fecha || '').startsWith(mesSeleccionado)) : ventas;
+      const totalVentas = datos.length;
+      const totalVendido = datos.reduce((a, v) => a + Number(v.precioVenta || 0), 0);
+      const totalCobrado = datos.reduce((a, v) => a + Number(v.totalPagado || 0), 0);
+      const totalPendiente = datos.reduce((a, v) => a + Number(v.pendiente || 0), 0);
+      const totalCosto = datos.reduce((a, v) => a + Number(v.costoTotal || 0), 0);
+      const totalGanancia = datos.reduce((a, v) => a + Number(v.ganancia || 0), 0);
+
+      let texto = 'REPORTE DE VENTAS DE FORROS\n';
+      texto += mesSeleccionado ? `MES: ${mesSeleccionado}\n\n` : 'PERIODO: GENERAL\n\n';
+      texto += `Ventas registradas: ${totalVentas}\n`;
+      texto += `Total vendido: $${fmt(totalVendido)}\n`;
+      texto += `Total pagado: $${fmt(totalCobrado)}\n`;
+      texto += `Pendiente por cobrar: $${fmt(totalPendiente)}\n`;
+      texto += `Costo total: $${fmt(totalCosto)}\n`;
+      texto += `Ganancia real: $${fmt(totalGanancia)}\n\n`;
+      texto += 'DETALLE DE VENTAS\n';
+      texto += '----------------------------------------\n';
+
+      datos.forEach((v, i) => {
+        texto += `${i + 1}. Fecha: ${v.fecha}\n`;
+        texto += `Cliente: ${v.cliente}\n`;
+        texto += `Forro: ${v.tipoForro}${v.medida ? ' - ' + v.medida : ''}\n`;
+        texto += `Cantidad: ${v.cantidad}\n`;
+        texto += `Total venta: $${fmt(v.precioVenta)}\n`;
+        texto += `Pago inicial: $${fmt(v.pagoInicial)}\n`;
+        texto += `Total abonos: $${fmt(v.totalAbonos)}\n`;
+        texto += `Total pagado: $${fmt(v.totalPagado)}\n`;
+        texto += `Pendiente: $${fmt(v.pendiente)}\n`;
+        texto += `Costo: $${fmt(v.costoTotal)}\n`;
+        texto += `Ganancia: $${fmt(v.ganancia)}\n`;
+        texto += `Estado: ${v.estado}\n`;
+        if (v.nota) texto += `Nota: ${v.nota}\n`;
+        if ((v.abonos || []).length) {
+          texto += 'Abonos:\n';
+          v.abonos.forEach(a => {
+            texto += `  - ${a.fecha}: $${fmt(a.monto)}${a.nota ? ' • ' + a.nota : ''}\n`;
+          });
+        }
+        texto += '----------------------------------------\n';
+      });
+
+      const blob = new Blob([texto], { type: 'text/plain;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = mesSeleccionado ? `reporte_ventas_${mesSeleccionado}.txt` : 'reporte_ventas_general.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function borrarTodo() {
+      const ok = confirm('Esto borrará todas las ventas guardadas en este navegador.');
+      if (!ok) return;
+      ventas = [];
+      guardar();
+      renderTodo();
+    }
+
+    function renderResumenMensual() {
+      const filtro = document.getElementById('filtroMes');
+      if (!filtro) return;
+      const mes = filtro.value || '';
+      const datos = mes ? ventas.filter(v => String(v.fecha || '').startsWith(mes)) : ventas;
+      const totalVentas = datos.length;
+      const totalVendido = datos.reduce((a, v) => a + Number(v.precioVenta || 0), 0);
+      const totalCobrado = datos.reduce((a, v) => a + Number(v.totalPagado || 0), 0);
+      const totalPendiente = datos.reduce((a, v) => a + Number(v.pendiente || 0), 0);
+      const totalGanancia = datos.reduce((a, v) => a + Number(v.ganancia || 0), 0);
+      document.getElementById('mVentas').textContent = totalVentas;
+      document.getElementById('mTotalVendido').textContent = `$${fmt(totalVendido)}`;
+      document.getElementById('mCobrado').textContent = `$${fmt(totalCobrado)}`;
+      document.getElementById('mPendiente').textContent = `$${fmt(totalPendiente)}`;
+      document.getElementById('mGanancia').textContent = `$${fmt(totalGanancia)}`;
+    }
+
+    function renderResumen() {
+      const totalVentas = ventas.length;
+      const totalVendido = ventas.reduce((a, v) => a + Number(v.precioVenta || 0), 0);
+      const totalCobrado = ventas.reduce((a, v) => a + Number(v.totalPagado || 0), 0);
+      const totalPendiente = ventas.reduce((a, v) => a + Number(v.pendiente || 0), 0);
+      const totalCosto = ventas.reduce((a, v) => a + Number(v.costoTotal || 0), 0);
+      const totalGanancia = ventas.reduce((a, v) => a + Number(v.ganancia || 0), 0);
+      document.getElementById('sVentas').textContent = totalVentas;
+      document.getElementById('sTotalVendido').textContent = `$${fmt(totalVendido)}`;
+      document.getElementById('sCobrado').textContent = `$${fmt(totalCobrado)}`;
+      document.getElementById('sPendiente').textContent = `$${fmt(totalPendiente)}`;
+      document.getElementById('sCosto').textContent = `$${fmt(totalCosto)}`;
+      document.getElementById('sGanancia').textContent = `$${fmt(totalGanancia)}`;
+    }
+
+    function renderTabla() {
+      const q = (document.getElementById('buscar').value || '').toLowerCase().trim();
+      const tbody = document.getElementById('tablaVentas');
+      const filtradas = ventas.filter(v => `${v.fecha} ${v.cliente} ${v.telefono} ${v.tipoForro} ${v.medida} ${v.nota}`.toLowerCase().includes(q));
+      if (!filtradas.length) {
+        tbody.innerHTML = '<tr><td colspan="13" class="small muted">No hay ventas registradas todavía.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtradas.map(v => {
+        const historialAbonos = (v.abonos || []).length
+          ? `<div class="abonos-box small"><strong>Abonos:</strong><ul>${v.abonos.map((a, i) => `<li>${a.fecha}: $${fmt(a.monto)}${a.nota ? ` • ${a.nota}` : ''}<button type="button" class="mini-btn secondary" onclick="abrirEditarAbono(${v.id}, ${i})">Editar</button><button type="button" class="mini-btn warn" onclick="borrarAbono(${v.id}, ${i})">Borrar</button></li>`).join('')}</ul></div>`
+          : '';
+        const estadoClass = v.estado === 'Pagado' ? 'paid' : 'pending';
+        return `
+          <tr>
+            <td data-label="Fecha">${v.fecha}</td>
+            <td data-label="Cliente"><strong>${v.cliente}</strong>${v.telefono ? `<div class="small muted">${v.telefono}</div>` : ''}${v.nota ? `<div class="small muted">${v.nota}</div>` : ''}${historialAbonos}</td>
+            <td data-label="Forro">${v.tipoForro}<div class="small muted">${v.medida || ''}</div></td>
+            <td data-label="Cantidad">${v.cantidad}</td>
+            <td data-label="Total venta">$${fmt(v.precioVenta)}</td>
+            <td data-label="Pago inicial">$${fmt(v.pagoInicial)}</td>
+            <td data-label="Total abonos">$${fmt(v.totalAbonos)}</td>
+            <td data-label="Total pagado">$${fmt(v.totalPagado)}</td>
+            <td data-label="Pendiente">$${fmt(v.pendiente)}</td>
+            <td data-label="Costo">$${fmt(v.costoTotal)}</td>
+            <td data-label="Ganancia">$${fmt(v.ganancia)}</td>
+            <td data-label="Estado"><span class="pill ${estadoClass}">${v.estado}</span></td>
+            <td data-label="Acción"><div class="btns" style="margin-top:0;"><button onclick="abrirModalAbono(${v.id})">Abonar</button><button class="secondary" onclick="abrirModalEditar(${v.id})">Editar</button><button class="warn" onclick="eliminarVenta(${v.id})">Borrar</button></div></td>
+          </tr>`;
+      }).join('');
+    }
+
+    function renderTodo() {
+      renderResumen();
+      renderResumenMensual();
+      renderTabla();
+    }
+
+    normalizarVentas();
+    document.getElementById('fecha').value = hoyISO();
+    document.getElementById('abonoFecha').value = hoyISO();
+    document.getElementById('editarAbonoFecha').value = hoyISO();
+    document.getElementById('filtroMes').value = hoyISO().slice(0, 7);
+    renderTodo();
+  </script>
+</body>
+</html>
